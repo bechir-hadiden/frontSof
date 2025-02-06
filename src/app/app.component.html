@@ -1,0 +1,33 @@
+   <!-- <div>
+    <input type="file" accept=".pdf, .xlsx, .xls, .doc, .docx, .csv"(change)="onFileSelected($event)" />
+    <button (click)="uploadFile()" [disabled]="!selectedFile">Envoyer</button>
+  </div>
+  
+  <pdf-viewer 
+    [src]="pdfSrc" 
+    [render-text]="true" 
+    style="display: block; width: 100%; height: 600px;">
+  </pdf-viewer> 
+
+  <div *ngIf="pdfSrc">
+    <pdf-viewer 
+      [src]="pdfSrc" 
+      [render-text]="true" 
+      style="display: block; width: 100%; height: 600px;">
+    </pdf-viewer>
+  </div> -->
+  
+  <!-- <div *ngIf="excelContent">
+    <h3>Contenu du fichier Excel :</h3>
+    <table>
+      <tr *ngFor="let row of excelContent">
+        <td *ngFor="let cell of row">{{ cell }}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div *ngIf="wordContent">
+    <h3>Contenu du fichier Word :</h3>
+    <div [innerHTML]="wordContent"></div>
+  </div> -->
+<router-outlet></router-outlet>
