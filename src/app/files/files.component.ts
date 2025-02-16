@@ -8,6 +8,9 @@ import * as pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { User } from '../Model/userModel';
+import { AuthService } from '../Services/auth.service';
 @Component({
   selector: 'app-files',
   standalone: false,
@@ -24,31 +27,44 @@ export class FilesComponent implements OnInit {
   file: FileData = new FileData();  // Objet FileModel
   fileName = '';
   pdfUrl: string | null = null;  // URL du PDF généré
+  isModalOpen = false;
+  userForm: FormGroup;
+  enteredUserName: string | null = null; // Ajoutez cette propriété
+  userName: string | null = null;
+  user = new User();
 
+  constructor(private authServices: AuthService ,private fb: FormBuilder ,  private fileUploadService: AppService , private rout :Router , private sanitizer: DomSanitizer , private http: HttpClient) {
+       this.userForm = this.fb.group({
+          username: ['', Validators.required]
+        });
+  }
+  promptUserName(): void {
+    const userName = prompt("Nom d'utilisateur:");
+    if (!userName || userName.length < 3) {
+      alert("Nom d'utilisateur invalide (min. 3 caractères)");
+      return;
+    }
 
-  constructor(private fileUploadService: AppService , private rout :Router , private sanitizer: DomSanitizer , private http: HttpClient) {}
-
-
-
-  openDocument(fileName: string): void {
-    this.fileUploadService.getDocument(fileName).subscribe({
-      next: (blob) => {
-        if (blob.size > 0) {
-          const url = window.URL.createObjectURL(blob);
-          window.open(url, '_blank'); // Ouvre dans un nouvel onglet
-        } else {
-          console.error("❌ Le fichier reçu est vide.");
-          alert("Le fichier est vide.");
+    this.authServices.login({ UserName: userName }).subscribe({
+      next: (response) => {
+        if (response.status === 201) {
+          console.log('Enregistré !', response.body);
+          // Déclencher l'upload
+          const fileInput = document.getElementById('fileInput');
+          fileInput?.click();
         }
       },
-      error: (err) => {
-        console.error("❌ Erreur lors de l'ouverture du fichier :", err);
-        alert("Impossible d'ouvrir le fichier.");
+      error: (error) => {
+        let errorMessage = "Erreur inconnue";
+        if (error.error?.message) {
+          errorMessage = error.error.message; // Message personnalisé du backend
+        } else if (error.status === 0) {
+          errorMessage = "Connexion au serveur impossible";
+        }
+        alert(errorMessage);
       }
     });
   }
-  
-
 
   ngOnInit(): void {
     this.fileUploadService.getAllFiles().subscribe(data => {
@@ -61,49 +77,6 @@ export class FilesComponent implements OnInit {
       });
     });
   }
-
-  // afficherFichier(file: FileData): void {
-  //   // const input = event.target as HTMLInputElement;
-  
-  //   console.log('Afficher le fichier:', file);
-  
-  //   if (!(file instanceof Blob)) {
-  //     console.error('Le fichier fourni n’est pas un Blob compatible.');
-  //     return;
-  //   }
-  
-  //   // const reader = new FileReader(); // Création de l'instance FileReader
-  //   // if (file.type === 'application/pdf') {
-  //   //   reader.readAsArrayBuffer(file);
-  //   // } else if (file.type.startsWith('text/')) {
-  //   //   reader.readAsText(file);
-  //   // } else {
-  //   //   reader.readAsDataURL(file); // Lecture générique pour d'autres types
-  //   // }
-  
-  //   // reader.onload = () => {
-  //   //   console.log('Contenu du fichier:', reader.result);
-  //   // };
-  
-  //   // reader.onerror = () => {
-  //   //   console.error('Erreur lors de la lecture du fichier:', reader.error);
-  //   // };
-  // }
-  
-
-  
-  // rechercheDepartement(){
-  //   this.appService.rechercherParNom(this.FileData = this.files).
-  //   subscribe(depar => { this.files = file;
-  //        console.log(depar)});
-  //   }
-
-  // afficherFichier(fileId: any) {
-  //   const fileUrl = `http://localhost:8084/api/files/download/${fileId}`;
-  //   window.open(fileUrl, '_blank');
-  // }
-  
-  
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -136,6 +109,7 @@ export class FilesComponent implements OnInit {
         error: (err) => {
           console.error('Erreur lors de l\'upload :', err);
           this.uploadMessage = 'Erreur lors de l\'upload du fichier.';
+          this.rout.navigate(['/files']);
         }
       });
     } else {
@@ -172,111 +146,38 @@ export class FilesComponent implements OnInit {
   //     }
   //   );
   // }
-  
-  
-    
-  
-    openFile(fileName: any) {
-      console.log('Tentative de récupération du fichier : ', fileName);
-      this.fileUploadService.getDocument(fileName).subscribe(
-        (blob: Blob) => {
-          console.log('Blob récupéré avec succès : ', );
-          if(blob.type === 'application/json') {
-          console.error('Erreur API :', blob);
-          }
-          if (blob.size > 0) {
-            const fileURL = URL.createObjectURL(blob);
-            this.selectedFileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
-          } else {
-            alert('Le fichier est vide.');
-          }
-        },
-        error => {
-          console.error('Erreur lors de la récupération du fichier : ', error);
-          alert('Impossible de récupérer le fichier. Vérifiez les logs pour plus de détails.');
-        }
-      );
-    }
-    
+   
+
+   
 
     downloadFile(fileName: any) {
       this.fileUploadService.getFileByName(fileName).subscribe(response => {
         const blob = new Blob([response], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
-        window.open(url); // Ouvre le fichier dans un nouvel onglet
+        window.open(url); 
       }, error => {
         console.error('Erreur lors du téléchargement du fichier', error);
       });
     }
 
-
-    // downloadFile(fileName: string) {
-    //   // Correction du nom de la méthode (getDocument au lieu de getFileByName)
-    //   this.fileUploadService.getDocument(fileName).subscribe({
-    //     next: (blob) => {
-    //       const url = window.URL.createObjectURL(blob);
-    //       window.open(url); // Ouvre le PDF
-    //     },
-    //     error: (err) => {
-    //       console.error('Erreur:', err);
-    //       this.showError(err.message); // Affiche un message d'erreur à l'utilisateur
-    //     }
-    //   });
-    // }
-    
-    // private showError(message: string) {
-    //   // Exemple d'affichage d'une alerte ou mise à jour de l'UI
-    //   alert(`Échec du chargement : ${message}`);
-    // }
-
-    viewFile() {
-      console.log("📂 Nom du fichier envoyé :", this.fileName);
-      console.log(`🔍 URL de l'API: http://localhost:8084/sofasoufa/api/files/fileByName/${this.fileName}`);
-
-      this.http.get(`http://localhost:8084/sofasoufa/api/files/fileByName/${this.fileName}`, { responseType: 'blob' })
-        .subscribe(blob => {
-          console.log("✅ Réponse reçue :", blob);
-    
-          if (blob.size === 0) {
-            console.error("❌ Le fichier reçu est vide !");
-            alert("Le fichier est vide ou corrompu !");
-            return;
-          }
-    
-          const url = window.URL.createObjectURL(blob);
-          this.pdfUrl = url;
-          window.open(this.pdfUrl); // Ouvre le fichier dans un nouvel onglet
-        }, error => {
-          console.error("❌ Erreur lors du chargement du fichier :", error);
-          alert("Fichier introuvable !");
-        });
+    openModal(): void {
+      if (this.selectedFile) {
+        this.isModalOpen = true;
+      } 
     }
-    
-    
 
+    closeModal(): void {
+      this.isModalOpen = false;
+      this.userForm.reset();
+    }
 
-
-
-  //   Document(fileName: any): void {
-  //     const encodedFilename = encodeURIComponent(fileName);
-  //     this.fileUploadService.getDocument(fileName).subscribe(blob => {
-  //       if (blob.type === 'application/json') {
-  //         blob.text().then(text => console.error('Erreur API :', text));
-  //       } else {
-  //         const url = URL.createObjectURL(blob);
-  //         this.previewUrl = url;
-  //       }
-  //     }, error => {
-  //       console.error('Erreur HTTP :', error);
-  //     });
-      
-    
-
-
-
-
-  // }
-  
-  
+    onSubmit(): void {
+      if (this.userForm.valid) {
+        const username = this.userForm.get('username')?.value;
+        // Ici vous pouvez combiner l'upload du fichier avec le nom d'utilisateur
+        this.uploadFile(); // Votre fonction d'upload existante
+        this.closeModal();
+      }
+    }  
 
 }

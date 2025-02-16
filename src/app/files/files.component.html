@@ -1,42 +1,51 @@
 <div>
-    <h2>Liste des fichiers disponibles</h2>
-    <h2 class="conx" routerLink="/login">Connexion</h2>
-    <table>
+  <h2>Liste des fichiers disponibles</h2>
+  <h2 class="conx" routerLink="/login">Connexion</h2>
+  <table>
       <thead>
-        <tr>
-          <th>Nom du fichier</th>
-          <th>Action</th>
-        </tr>
+          <tr>
+              <th>Nom du fichier</th>
+              <th>Action</th>
+              <th>Date d ajoute</th>
+              <th>Nom d utlisateur</th>
+          </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let file of files">
-          <td>{{ file.fileName }}</td>
-        <td>
-          <button (click)="downloadFile(file.fileName)" class="btn btn-primary">Afficher</button>
-          <!-- <button (click)="openDocument('Lettre_affectation-DSI3_Iheb Deruich.pdf')">Ouvrir le PDF</button> -->
-          </td>
-        </tr>
+          <tr *ngFor="let file of files">
+              <td>{{ file.fileName }}</td>
+                <td> {{ enteredUserName }}</td>
+              <td>{{ file.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <button (click)="downloadFile(file.fileName)" class="btn btn-primary">Afficher</button>
+          </tr>
       </tbody>
-    </table>
-    <div>
-    <input type="file" accept=".pdf, .xlsx, .xls, .doc, .docx, .csv"(change)="onFileSelected($event)" />
-    <button (click)="uploadFile()" [disabled]="!selectedFile">Envoyer</button>
-  </div>  
+  </table>
+  <div>
+      <input (click)="promptUserName()"  type="file" accept=".pdf, .xlsx, .xls, .doc, .docx, .csv" (change)="onFileSelected($event)" />
+      <button  routerLink="/files"  (click)="uploadFile()" [disabled]="!selectedFile">Envoyer</button>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" *ngIf="isModalOpen">
+    <div class="modal-overlay" (click)="closeModal()"></div>
+    <div class="modal-content">
+        <span class="close" (click)="closeModal()">&times;</span>
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="form-container">
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input  [(ngModel)]="user.UserName"  id="username" type="text" formControlName="username" required>
+            </div>
+            <button type="submit" [disabled]="!userForm.valid">Confirmer</button>
+        </form>
+    </div>
+</div>
 
   <div *ngIf="pdfUrl" class="pdf-container">
-    <h3>Aperçu du fichier :</h3>
-    <iframe [src]="pdfUrl" width="100%" height="500px"></iframe>
+      <h3>Aperçu du fichier :</h3>
+      <iframe [src]="pdfUrl" width="100%" height="500px"></iframe>
   </div>
 </div>
 
-  
-
-
-
-  <div *ngIf="pdfSrc">
-    <pdf-viewer 
-      [src]="pdfSrc" 
-      [render-text]="true" 
-      style="display: block; width: 100%; height: 600px;">
-    </pdf-viewer>
-  
+<div *ngIf="pdfSrc">
+  <pdf-viewer [src]="pdfSrc" [render-text]="true" style="display: block; width: 100%; height: 600px;">
+  </pdf-viewer>
+</div>

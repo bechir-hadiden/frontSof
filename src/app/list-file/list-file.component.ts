@@ -3,7 +3,16 @@ import { Component } from '@angular/core';
 import * as mammoth from 'mammoth';
 import { AppService } from '../Services/app.service';
 import { AuthService } from '../Services/auth.service';
+import  { ChartConfiguration, ChartData, ChartType } from 'chart.js/auto'
+import { Chart } from 'chart.js/auto';
+import { ChartService } from '../Services/chart.service';
+export interface IChartData {
 
+  label: string;
+
+  value: number;
+
+} 
 @Component({
   selector: 'app-list-file',
   standalone : false ,
@@ -15,46 +24,54 @@ export class ListFileComponent {
   selectedFile: File | null = null;
   uploadMessage!: any
   reponse !: any ;
+  chart: any;
 
-  constructor(private http: HttpClient , private fileUploadService : AppService , public authService : AuthService) {}
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
 
-    if (input.files && input.files.length > 0) {
-      const file: File = input.files[0];
 
-      if (file.type === 'application/pdf') {
-        this.selectedFile = file;
+  public pieChartType: ChartType = 'pie';
+  
+  public pieChartData: ChartData<'pie'> = {
+    labels: ['Catégorie 1', 'Catégorie 2'],
+    datasets: [{
+      data: [60, 40],
+      backgroundColor: ['#FFA500', '#FFD700'], // Orange et Jaune
+      hoverBackgroundColor: ['#FF8C00', '#FFB900']
+    }]
+  };
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.pdfSrc = e.target?.result;
-        };
-        reader.readAsArrayBuffer(file);
-      } else {
-        alert('Veuillez sélectionner un fichier PDF.');
+  constructor( private chartService: ChartService ,  private http: HttpClient , private fileUploadService : AppService , public authService : AuthService) {}
+
+  ngOnInit(): void {
+    const chartData = [
+      { label: 'Ventes', value: 5000 },
+      { label: 'Dépenses', value: 3000 }
+    ]; // Remplacement du service par des données statiques
+    this.createChart(chartData);
+  }
+
+  createChart(chartData: IChartData[]) {
+    const ctx = document.getElementById('myChart') as HTMLCanvasElement;
+  
+    const config = {
+      type: 'doughnut',  
+      data: {
+        labels: chartData.map(item => item.label),
+        datasets: [{
+          data: chartData.map(item => item.value),
+          backgroundColor: ['#FFA500', '#FFD700'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%' 
       }
-    }
+    } as ChartConfiguration<'doughnut'>; 
+  
+    this.chart = new Chart(ctx, config);
   }
-
-  uploadFile(): void {
-    if (this.selectedFile) {
-      console.log('Envoi du fichier :', this.selectedFile.name);
-      this.fileUploadService.uploadFile(this.selectedFile).subscribe({
-        next: (response) => {
-          console.log('Réponse du serveur :', response);
-          this.uploadMessage = response;
-        },
-        error: (err) => {
-          console.error('Erreur lors de l\'upload :', err);
-          this.uploadMessage = 'Erreur lors de l\'upload du fichier.';
-        }
-      });
-    } else {
-      console.warn('Aucun fichier sélectionné.');
-      this.uploadMessage = 'Veuillez sélectionner un fichier.';
-    }
-  }
-
 }
+
+

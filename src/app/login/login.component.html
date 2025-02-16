@@ -1,85 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Connexion</title>
-    <!-- Ajout des liens Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-</head>
+<!-- Bouton pour ouvrir la modal -->
+<button (click)="openModal()" class="open-btn">Ouvrir le formulaire</button>
 
-<body>
-    <div class="container">
-        <div class="left-section"></div>
-        <div class="right-section">
-            <div class="login-container">
-                <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onLoggedin()">
-                    <h2 class="login-title">
-                        <i class="fas fa-user-circle"></i> Connexion
-                    </h2>
-
-                    <!-- Message d'erreur -->
-                    <div class="alert alert-danger" *ngIf="message">
-                        {{ message }}
-                    </div>
-
-                    <!-- Champ Username -->
-                    <div class="form-control">
-                        <i class="fas fa-user icon"></i>
-                        <input 
-                            type="text" 
-                            placeholder="Adresse e-mail ou numéro de tél" 
-                            formControlName="username"
-                            id="username" 
-                            required>
-                        <div class="error-message" *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.invalid">
-                            Ce champ est obligatoire
-                        </div>
-                    </div>
-
-                    <!-- Champ Password -->
-                    <div class="form-control">
-                        <i class="fas fa-lock icon"></i>
-                        <div class="mdp">
-                            <input 
-                                [type]="showPassword ? 'text' : 'password'"
-                                formControlName="password" 
-                                placeholder="Mot de passe"
-                                id="password" 
-                                required/>
-                            <i class="fas" 
-                               [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"
-                               (click)="togglePasswordVisibility()"
-                               style="cursor: pointer;"></i>
-                        </div>
-                        <div class="error-message" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
-                            Ce champ est obligatoire
-                        </div>
-                    </div>
-
-                    <!-- Remember Me -->
-                    <div class="remember-me">
-                        <input type="checkbox" id="rememberMe" class="checkbox-input">
-                        <span class="checkbox-custom"></span>
-                        <label for="rememberMe">Se souvenir de moi</label>
-                    </div>
-
-                    <!-- Bouton de connexion -->
-                    <button type="submit" class="btn btn-primary" [disabled]="isLoading">
-                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-                        {{ isLoading ? 'Connexion en cours...' : 'Connexion' }}
-                    </button>
-
-                    <!-- Mot de passe oublié -->
-                    <div class="forgot-password">
-                        <a href="/forgot-password">Mot de passe oublié?</a>
-                    </div>
-
-                    <!-- Lien d'inscription -->
-                    <div class="register-link">
-                        <p>Vous n'avez pas de compte? <a routerLink="/register">S'inscrire</a></p>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+<!-- Modal -->
+<div class="modal" *ngIf="isModalOpen">
+  <div class="modal-overlay" (click)="closeModal()"></div>
+  
+  <div class="modal-content">
+    <span class="close" (click)="closeModal()">&times;</span>
+    
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="form-container">
+      <div class="form-group">
+        <label for="username">Nom d'utilisateur</label>
+        <input 
+          id="username" 
+          type="text" 
+          formControlName="username" 
+          required>
+      </div>
+      <button type="submit" [disabled]="!userForm.valid">Envoyer</button>
+    </form>
+  </div>
+</div>

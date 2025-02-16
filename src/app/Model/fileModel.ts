@@ -9,5 +9,7 @@ export class FileData {
     type!: string;
     data?: string; // Optionnel si vous stockez le contenu en base64 ou un chemin vers le fichier
     content!: Blob; // Ajoutez cette propriété si elle manque
+    createdAt!: string; // Nouvelle colonne
+
 
   }

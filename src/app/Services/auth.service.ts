@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { User } from '../Model/userModel';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,11 +13,12 @@ export class AuthService {
   public isloggedIn: Boolean = false;
   public roles!: string[];
   public regitredUser: User = new User();
+  user = new User();
 
   token!: string;
 
 
-  apiUser: string = "http://localhost:8089/user";
+  apiUser: string = "http://localhost:8084/sofasoufa/api/files/saveUser";
 
 
   constructor(private router: Router, private http: HttpClient) { }
@@ -34,8 +36,15 @@ export class AuthService {
     this.token = token;
   }
 
+
+  saveUserName(userName: string): Observable<any> {
+    const params = new HttpParams().set('username', userName);
+    return this.http.post(this.apiUser, null, { params });
+  }
+  
   login(user: User) {
-    return this.http.post<User>(this.apiUser + '/all', user, { observe: 'response' });
+    console.log('URL utilisée pour la requête:', this.apiUser);
+    return this.http.post<User>(this.apiUser , user, { observe: 'response' });
   }
 
   logout() {

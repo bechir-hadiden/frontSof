@@ -137,6 +137,9 @@ export class AppService {
   }
 
 
+ 
+
+
 
   getFileByName(fileName: any): Observable<Blob> {
     const url = `${this.baseUrlA}/${fileName}`;
@@ -259,7 +262,6 @@ export class AppService {
 //     let docDefinition = {
 //         content: ['This is a sample PDF printed with pdfMake']
 //     };
-
 //     pdfMake.createPdf(docDefinition).open();
 // }
 // }
